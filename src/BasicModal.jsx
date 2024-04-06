@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -22,14 +22,29 @@ const style = {
 export default function BasicModal() {
   const [open, setOpen] = useState(false);
   const [showQuestionOptions, setShowQuestionOptions] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => {
-    setOpen(false);
-    setShowQuestionOptions(true);
-  };
+  const [theTest, setTheTest] = useState([]);
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState([]);
   const [newOption, setNewOption] = useState({ answer: "", status: false });
+  const showStoredTest = JSON.parse(localStorage.getItem("theTest")) || [];
+
+  useEffect(() => {
+    setShowQuestionOptions(true);
+  }, []);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+
+    const updatedTest = [...theTest, { question, options }];
+    setTheTest(updatedTest);
+    localStorage.setItem("theTest", JSON.stringify(updatedTest));
+
+    setShowQuestionOptions(true);
+    setQuestion("");
+    setOptions([]);
+    setNewOption({ answer: "", status: false });
+  };
 
   const handleCheckboxChange = (event, index) => {
     const updatedOptions = [...options];
@@ -57,7 +72,7 @@ export default function BasicModal() {
 
   return (
     <div>
-      <Button onClick={handleOpen}>add</Button>
+      <Button onClick={handleOpen}>Add</Button>
       <Modal
         open={open}
         aria-labelledby="modal-modal-title"
@@ -89,7 +104,7 @@ export default function BasicModal() {
           />
 
           <Button onClick={addChoiceToOptions}>Add</Button>
-          <div> {showOptions}</div>
+          <div>{showOptions}</div>
           <hr />
           <Button onClick={handleClose}>OK</Button>
         </Box>
@@ -97,18 +112,21 @@ export default function BasicModal() {
 
       {showQuestionOptions && (
         <div>
-          <h2> {question}</h2>
-
-          {options.map((option, index) => (
+          {showStoredTest.map((q, index) => (
             <div key={index}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={option.status}
-                  onChange={(event) => handleCheckboxChange(event, index)}
-                />
-                {option.answer}
-              </label>
+              <h2>{q.question}</h2>
+              {q.options.map((option, i) => (
+                <div key={i}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={option.status}
+                      onChange={(event) => handleCheckboxChange(event, i)}
+                    />
+                    {option.answer}
+                  </label>
+                </div>
+              ))}
             </div>
           ))}
         </div>
